@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
         case 'l':
             strncpy(method.key, "list", 4);
             strncpy(method.value, optarg, strlen(optarg));
-            printf("Dir is %s\n", optarg);
+            // printf("Dir is %s\n", optarg);
             send_message(&method);
             break;
         case 'g':

@@ -1,5 +1,6 @@
 #include "../method.h"
 #include "server_net.h"
+#include "file_system.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>       // fork
@@ -61,26 +62,34 @@ void listen_client(int port)
             continue;
         }
 
-        //接受客户端传过来的数据
-        n = recv(cfd, &method, MAXLINE, 0);
-        //向客户端发送回应数据
-        if (!fork())
-        {
-            strcpy(resp, "dont ");
-            if (0 == strncmp(method.key, "list", 4))
-            {
-                strcpy(resp, "list ");
-            }
-            strcpy(resp + 5, method.value);
-            resp[6 + strlen(method.value)] = '\0';
+        memset(resp, 0, sizeof(resp));
 
-            if (send(cfd, resp, strlen(resp), 0) == -1)
-            {
-                perror("send error");
-            }
-            close(cfd);
-            exit(0);
+        // 接受客户端传过来的数据
+        n = recv(cfd, &method, MAXLINE, 0);
+
+        // 数据处理
+        if (0 == strncmp(method.key, "list", 4))
+        {
+            char * dirstring = listfile(method.value);
+            strcpy(resp, dirstring);
+            free(dirstring);
         }
+        else if (0 == strncmp(method.key, "get", 3))
+        {
+            strcpy(resp, "get ");
+            strcpy(resp + 5, method.value);
+        }
+        else
+        {
+            strcpy(resp, "error \n");
+        }
+
+        // 向客户端发送回应数据
+        if (send(cfd, resp, strlen(resp), 0) == -1)
+        {
+            perror("send error");
+        }
+
         printf("%s: %s \n", method.key, method.value);
         close(cfd);
     }

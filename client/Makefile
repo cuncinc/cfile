@@ -13,5 +13,4 @@ client_net.o: client_net.c client_net.h config.h ../method.h
 	gcc -c client_net.c
 
 clean:
-	rm cfile
 	rm *.o

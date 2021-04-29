@@ -49,7 +49,8 @@ void *send_message(struct method *p)
     //接受客户端传过来的数据
     n = recv(sfd, buffer, MAXLINE, 0);
     buffer[n] = '\0';
-    printf("recv msg from server: %s\n", buffer);
+    // printf("recv msg from server: %s\n", buffer);
+    puts(buffer);
 
     close(sfd);
     free(host);

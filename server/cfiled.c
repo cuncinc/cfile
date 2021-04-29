@@ -70,8 +70,7 @@ int deamonize()
 int main(int argc, char *argv[])
 {
     deamonize();
-
+    printf("cfiled: open successfully.\n");
     listen_client(9393);
-
     return 0;
 }
