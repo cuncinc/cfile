@@ -4,6 +4,7 @@
         "unistd.h": "c",
         "resource.h": "c",
         "fcntl.h": "c",
-        "syslog.h": "c"
+        "syslog.h": "c",
+        "net.h": "c"
     }
 }

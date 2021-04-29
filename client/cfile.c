@@ -1,3 +1,4 @@
+#include "net.h"
 #include "config.h"
 #include <stdio.h>
 #include <getopt.h> //引入getopt_long工具解析长选项
@@ -18,19 +19,15 @@ static struct option long_options[] =
     {"version", no_argument, NULL, 'v'},
     {"host", required_argument, NULL, 'o'},
     {"port", required_argument, NULL, 'p'},
-    {"list", optional_argument, NULL, 'l'},
+    {"list", required_argument, NULL, 'l'},
     {"get", required_argument, NULL, 'g'},
 };
 
 int main(int argc, char *argv[])
 {
-    char *host = read_config_file("host");
-    char *port = read_config_file("port");
-    printf("default host is %s\n", host);
-    printf("default port is %s\n", port);
     int index = 0;
     int c = 0;                       //用于接收选项
-    char *optstring = "hvo:p:l::g:"; //无:则无参数，一个:必须有参数，二个:可选参数
+    char *optstring = "hvo:p:l:g:"; //无:则无参数，一个:必须有参数，二个:可选参数
     /*循环处理参数*/
     while (EOF != (c = getopt_long(argc, argv, optstring, long_options, &index)))
     {
@@ -52,6 +49,7 @@ int main(int argc, char *argv[])
             break;
         case 'l':
             printf("Dir is %s\n", optarg);
+            send_message("optarg");
             break;
         case 'g':
             printf("Get is %s\n", optarg);
