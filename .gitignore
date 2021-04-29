@@ -1,3 +1,5 @@
 *.o
 cfile
-cfiled  
+cfiled
+*.ini
+*.ini

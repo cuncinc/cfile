@@ -1,6 +1,9 @@
-#include "net.h"
+#include "client_net.h"
 #include "config.h"
+#include "../method.h"
+
 #include <stdio.h>
+#include <string.h>
 #include <getopt.h> //引入getopt_long工具解析长选项
 
 // getopt_long要求的声明，
@@ -25,9 +28,11 @@ static struct option long_options[] =
 
 int main(int argc, char *argv[])
 {
+    struct method method;
+    memset(&method, 0, sizeof(method));
     int index = 0;
     int c = 0;                       //用于接收选项
-    char *optstring = "hvo:p:l:g:"; //无:则无参数，一个:必须有参数，二个:可选参数
+    char optstring[] = "hvo:p:l:g:"; //无:则无参数，一个:必须有参数，二个:可选参数
     /*循环处理参数*/
     while (EOF != (c = getopt_long(argc, argv, optstring, long_options, &index)))
     {
@@ -48,8 +53,10 @@ int main(int argc, char *argv[])
             write_config_file("port", optarg);
             break;
         case 'l':
+            strncpy(method.key, "list", 4);
+            strncpy(method.value, optarg, strlen(optarg));
             printf("Dir is %s\n", optarg);
-            send_message("optarg");
+            send_message(&method);
             break;
         case 'g':
             printf("Get is %s\n", optarg);

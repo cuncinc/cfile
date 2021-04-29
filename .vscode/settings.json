@@ -5,6 +5,8 @@
         "resource.h": "c",
         "fcntl.h": "c",
         "syslog.h": "c",
-        "net.h": "c"
+        "net.h": "c",
+        "method.h": "c",
+        "stdio.h": "c"
     }
 }

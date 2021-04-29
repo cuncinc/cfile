@@ -1,15 +1,16 @@
-#include "net.h"
+#include "client_net.h"
 #include "config.h"
-
+#include "../method.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-void *send_message(char *message)
+void *send_message(struct method *p)
 {
     struct sockaddr_in caddr;
     int tmp;
@@ -43,7 +44,7 @@ void *send_message(char *message)
         exit(0);
     }
 
-    send(sfd, message, strlen(message), 0);
+    send(sfd, p, sizeof(*p), 0);
 
     //接受客户端传过来的数据
     n = recv(sfd, buffer, MAXLINE, 0);
@@ -52,5 +53,4 @@ void *send_message(char *message)
 
     close(sfd);
     free(host);
-    return NULL;
 }
