@@ -9,7 +9,7 @@
 只有安装并启动了服务端的机器才能登录，使用`cfiled`命令来启动服务端守护进程。`cfiled`使用读取配置文件的方式来初始化缺省配置
 
 ```
-listent_port=7293
+listent_port=9393
 default_dir="~"
 share_dir=["~","/home/cc/"]
 ```
@@ -27,7 +27,7 @@ share_dir=["~","/home/cc/"]
 | --help \| -h              | 帮助                                         | √    |
 | --verion \| -v            | 版本号                                       | √    |
 | config host "remote_host" | 指定远程机器的IP                             |      |
-| config port remote_port   | 指定远程机器的端口，默认为7293               |      |
+| config port remote_port   | 指定远程机器的端口，默认为9393               |      |
 | list [path]               | 列出对方的目录，不指定则为对方设置的默认目录 |      |
 | get <file_name>           | 下载**此目录下**的文件                       |      |
 | get <dir_name>            | 下载**此目录下**的文件                       |      |
