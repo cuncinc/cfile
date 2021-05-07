@@ -11,7 +11,7 @@ char nofile_message[] = "cannot access: No such file or directory";
 char *listfile(const char *dirname)
 {
     char *dirstring = (char *)malloc(sizeof(char) * 4096);
-    int len = 0;
+    int len = 0;    // dirstring字符串的长度
 
     // 目录下的每个子项文件
     struct dirent *entry;
@@ -20,7 +20,8 @@ char *listfile(const char *dirname)
     if (NULL == dir)
     {
         printf("error: directory %s cannot access\n", dirname);
-        return nofile_message;
+        strcpy(dirstring, nofile_message);
+        return dirstring;
     }
 
     chdir(dirname);
@@ -43,7 +44,7 @@ char *listfile(const char *dirname)
     }
     dirstring[len++] = '\0';
 
-    chdir("..");
+    // chdir("~");
     closedir(dir);
     return dirstring;
 }

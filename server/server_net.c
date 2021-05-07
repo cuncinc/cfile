@@ -1,4 +1,4 @@
-#include "../method.h"
+#include "../protocal.h"
 #include "server_net.h"
 #include "file_system.h"
 #include <stdio.h>
@@ -13,17 +13,15 @@
 #include <netinet/in.h>
 #include <string.h>
 
-#define MAXLINE 4096
-
 void listen_client(int port)
 {
     struct sockaddr saddr;
     struct sockaddr_in servaddr;
     int tmp;
-    int sfd;            // socket  file describtor
-    int cfd;            // content file describtor
-    int n;              // size received
-    char resp[MAXLINE]; //response
+    int sfd;              // socket  file describtor
+    int cfd;              // content file describtor
+    int n;                // size received
+    struct response resp; //response
     struct method method;
 
     sfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -62,34 +60,58 @@ void listen_client(int port)
             continue;
         }
 
-        memset(resp, 0, sizeof(resp));
+        ////////////////////////////////////////////////
+        memset(resp.body, 0, sizeof(resp.body));
+        resp.errcode = 200;
 
         // 接受客户端传过来的数据
-        n = recv(cfd, &method, MAXLINE, 0);
+        n = recv(cfd, &method, sizeof(method), 0);
 
         // 数据处理
-        if (0 == strncmp(method.key, "list", 4))
+        if (0 == strcmp(method.key, "list"))
         {
-            char * dirstring = listfile(method.value);
-            strcpy(resp, dirstring);
+            char *dirstring = listfile(method.value);
+            strcpy(resp.body, dirstring);
             free(dirstring);
+            resp.errcode = 200;
+            // 向客户端发送回应数据
+            if (send(cfd, &resp, sizeof(resp), 0) == -1)
+            {
+                perror("send error");
+            }
         }
-        else if (0 == strncmp(method.key, "get", 3))
+        else if (0 == strcmp(method.key, "get"))
         {
-            strcpy(resp, "get ");
-            strcpy(resp + 5, method.value);
+            FILE *file = fopen(method.value, "r");
+            if (NULL == file)
+            {
+                resp.errcode = 404;
+                strcpy(resp.body, "no such file: ");
+                strcpy(resp.body + strlen(resp.body), method.value);
+                if (send(cfd, &resp, sizeof(resp), 0) == -1)
+                {
+                    printf("file not found : %s\n", method.value);
+                }
+            }
+            else
+            {
+                while (fread(&(resp.body), sizeof(char), sizeof(resp.body), file) > 0)
+                {
+                    send(cfd, &resp, sizeof(resp), 0);
+                    printf("%s\n", resp.errcode, resp.body);
+                    memset(&(resp.body), 0, sizeof(resp.body));
+                }
+                fclose(file);
+            }
         }
         else
         {
-            strcpy(resp, "error \n");
+            resp.errcode = -1;
+            strcpy(resp.body, "error \n");
+            send(cfd, &resp, sizeof(resp), 0);
         }
 
-        // 向客户端发送回应数据
-        if (send(cfd, resp, strlen(resp), 0) == -1)
-        {
-            perror("send error");
-        }
-
+        ////////////////////////////////////////////////
         printf("%s: %s \n", method.key, method.value);
         close(cfd);
     }

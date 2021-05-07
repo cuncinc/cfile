@@ -1,0 +1,104 @@
+     1	#include "param.h"
+     2	#include "types.h"
+     3	#include "defs.h"
+     4	#include "x86.h"
+     5	#include "memlayout.h"
+     6	#include "mmu.h"
+     7	#include "proc.h"
+     8	#include "elf.h"
+     9	
+    10	extern char data[];  // defined by kernel.ld
+    11	pde_t *kpgdir;  // for use in scheduler()
+    12	
+    13	// Set up CPU's kernel segment descriptors.
+    14	// Run once on entry on each CPU.
+    15	void
+    16	seginit(void)
+    17	{
+    18	  struct cpu *c;
+    19	
+    20	  // Map "logical" addresses to virtual addresses using identity map.
+    21	  // Cannot share a CODE descriptor for both kernel and user
+    22	  // because it would have to have DPL_USR, but the CPU forbids
+    23	  // an interrupt from CPL=0 to DPL=3.
+    24	  c = &cpus[cpuid()];
+    25	  c->gdt[SEG_KCODE] = SEG(STA_X|STA_R, 0, 0xffffffff, 0);
+    26	  c->gdt[SEG_KDATA] = SEG(STA_W, 0, 0xffffffff, 0);
+    27	  c->gdt[SEG_UCODE] = SEG(STA_X|STA_R, 0, 0xffffffff, DPL_USER);
+    28	  c->gdt[SEG_UDATA] = SEG(STA_W, 0, 0xffffffff, DPL_USER);
+    29	  lgdt(c->gdt, sizeof(c->gdt));
+    30	}
+    31	
+    32	// Return the address of the PTE in page table pgdir
+    33	// that corresponds to virtual address va.  If alloc!=0,
+    34	// create any required page table pages.
+    35	static pte_t *
+    36	walkpgdir(pde_t *pgdir, const void *va, int alloc)
+    37	{
+    38	  pde_t *pde;
+    39	  pte_t *pgtab;
+    40	
+    41	  pde = &pgdir[PDX(va)];
+    42	  if(*pde & PTE_P){
+    43	    pgtab = (pte_t*)P2V(PTE_ADDR(*pde));
+    44	  } else {
+    45	    if(!alloc || (pgtab = (pte_t*)kalloc()) == 0)
+    46	      return 0;
+    47	    // Make sure all those PTE_P bits are zero.
+    48	    memset(pgtab, 0, PGSIZE);
+    49	    // The permissions here are overly generous, but they can
+    50	    // be further restricted by the permissions in the page table
+    51	    // entries, if necessary.
+    52	    *pde = V2P(pgtab) | PTE_P | PTE_W | PTE_U;
+    53	  }
+    54	  return &pgtab[PTX(va)];
+    55	}
+    56	
+    57	// Create PTEs for virtual addresses starting at va that refer to
+    58	// physical addresses starting at pa. va and size might not
+    59	// be page-aligned.
+    60	static int
+    61	mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
+    62	{
+    63	  char *a, *last;
+    64	  pte_t *pte;
+    65	
+    66	  a = (char*)PGROUNDDOWN((uint)va);
+    67	  last = (char*)PGROUNDDOWN(((uint)va) + size - 1);
+    68	  for(;;){
+    69	    if((pte = walkpgdir(pgdir, a, 1)) == 0)
+    70	      return -1;
+    71	    if(*pte & PTE_P)
+    72	      panic("remap");
+    73	    *pte = pa | perm | PTE_P;
+    74	    if(a == last)
+    75	      break;
+    76	    a += PGSIZE;
+    77	    pa += PGSIZE;
+    78	  }
+    79	  return 0;
+    80	}
+    81	
+    82	// There is one page table per process, plus one that's used when
+    83	// a CPU is not running any process (kpgdir). The kernel uses the
+    84	// current process's page table during system calls and interrupts;
+    85	// page protection bits prevent user code from using the kernel's
+    86	// mappings.
+    87	//
+    88	// setupkvm() and exec() set up every page table like this:
+    89	//
+    90	//   0..KERNBASE: user memory (text+data+stack+heap), mapped to
+    91	//                phys memory allocated by the kernel
+    92	//   KERNBASE..KERNBASE+EXTMEM: mapped to 0..EXTMEM (for I/O space)
+    93	//   KERNBASE+EXTMEM..data: mapped to EXTMEM..V2P(data)
+    94	//                for the kernel's instructions and r/o data
+    95	//   data..KERNBASE+PHYSTOP: mapped to V2P(data)..PHYSTOP,
+    96	//                                  rw data + free physical memory
+    97	//   0xfe000000..0: mapped direct (devices such as ioapic)
+    98	//
+    99	// The kernel allocates physical memory for its heap and for user memory
+   100	// between V2P(end) and the end of physical memory (PHYSTOP)
+   101	// (directly addressable from end..P2V(PHYSTOP)).
+   102	
+   103	// This table defines the kernel's mappings, which are present in
+   1

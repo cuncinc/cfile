@@ -1,6 +1,6 @@
 #include "client_net.h"
 #include "config.h"
-#include "../method.h"
+#include "../protocal.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -38,28 +38,30 @@ int main(int argc, char *argv[])
     {
         switch (c)
         {
-        case 'h':
+        case 'h':   // help
             printf("help\n");
             break;
-        case 'v':
+        case 'v':   // version
             printf("cfile version 0.0.1\n");
             break;
-        case 'o':
+        case 'o':   // host
             printf("IP is %s\n", optarg);
             write_config_file("host", optarg);
             break;
-        case 'p':
+        case 'p':   // port
             printf("Port is %s\n", optarg);
             write_config_file("port", optarg);
             break;
-        case 'l':
-            strncpy(method.key, "list", 4);
-            strncpy(method.value, optarg, strlen(optarg));
+        case 'l':   // list
+            strcpy(method.key, "list");
+            strcpy(method.value, optarg);
             // printf("Dir is %s\n", optarg);
-            send_message(&method);
+            send_method(&method);
             break;
-        case 'g':
-            printf("Get is %s\n", optarg);
+        case 'g':   // get
+            strcpy(method.key, "get");
+            strcpy(method.value, optarg);
+            send_file_method(&method);
             break;
 
         //表示选项不支持

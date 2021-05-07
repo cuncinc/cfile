@@ -34,22 +34,25 @@ char *read_config_file(char *name)
 bool write_config_file(char *name, char *value)
 {
     bool state = true;
+    char buffer[4096];
+    memset(buffer, 0, sizeof(buffer));
     FILE * file = fopen(CONFIG_FILE_PATH, "a+");
-    char buffer[128];
+    int len = 0;
 
     while (!feof(file))
     {
-        fgets(buffer, sizeof(buffer), file);
-        if (0 == strncmp(name, buffer, strlen(name)))
-        {
-            // 修改文件内容，重新读写一遍 
-            goto done;
-        }
+        fgets(buffer+len, sizeof(buffer), file);
+        len = sizeof(buffer);
+        // if (0 == strncmp(name, buffer, strlen(name)))
+        // {
+        //     // 修改文件内容，重新读写一遍
+        // }
     }
+    fclose(file);
 
+    file = fopen(CONFIG_FILE_PATH, "w");
     fprintf(file, "%s=%s\n", name, value);
-
-done:
+    fputs(buffer, file);
     fclose(file);
     return state;
 }

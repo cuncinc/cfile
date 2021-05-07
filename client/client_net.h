@@ -1,10 +1,10 @@
 #ifndef _CLIENT_NET_H
 #define _CLIENT_NET_H
 
-#include "../method.h"
+#include "../protocal.h"
 
-#define MAXLINE 4096
+void *send_method(struct method *method);
 
-void *send_message(struct method *p);
+void *send_file_method(struct method *method);
 
 #endif

@@ -7,6 +7,7 @@
         "syslog.h": "c",
         "net.h": "c",
         "method.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "config.h": "c"
     }
 }
