@@ -26,8 +26,55 @@ static struct option long_options[] =
     {"get", required_argument, NULL, 'g'},
 };
 
+static void usage(const char *argv0)
+{
+    printf("usage:\t%s [option]\n\n", argv0);
+    printf("\t--help(-h)\n"
+           "\t\tHelp.\n\n");
+    printf("\t--list(-l) dir\n"
+           "\t\tList directory.\n\n");
+    printf("\t--get(-g) filename\n"
+           "\t\tDownload file.\n\n");
+    // printf("\t--syslog\n"
+    //        "\t\tUse syslog for request log.\n\n");
+    // printf("\t--chroot (default: don't chroot)\n"
+    //        "\t\tLocks server into wwwroot directory for added security.\n\n");
+    // printf("\t--daemon (default: don't daemonize)\n"
+    //        "\t\tDetach from the controlling terminal and run in the background.\n\n");
+    // printf("\t--no-listing\n"
+    //        "\t\tDo not serve listing if directory is requested.\n\n");
+    // printf("\t--mimetypes filename (optional)\n"
+    //        "\t\tParses specified file for extension-MIME associations.\n\n");
+    // printf("\t--uid uid/uname, --gid gid/gname (default: don't privdrop)\n"
+    //        "\t\tDrops privileges to given uid:gid after initialization.\n\n");
+    // printf("\t--pidfile filename (default: no pidfile)\n"
+    //        "\t\tWrite PID to the specified file.  Note that if you are\n"
+    //        "\t\tusing --chroot, then the pidfile must be relative to,\n"
+    //        "\t\tand inside the wwwroot.\n\n");
+    // printf("\t--no-keepalive\n"
+    //        "\t\tDisables HTTP Keep-Alive functionality.\n\n");
+    // printf("\t--forward host url (default: don't forward)\n"
+    //        "\t\tWeb forward (301 redirect).\n"
+    //        "\t\tRequests to the host are redirected to the corresponding url.\n"
+    //        "\t\tThe option may be specified multiple times, in which case\n"
+    //        "\t\tthe host is matched in order of appearance.\n\n");
+    // printf("\t--forward-all url (default: don't forward)\n"
+    //        "\t\tWeb forward (301 redirect).\n"
+    //        "\t\tAll requests are redirected to the corresponding url.\n\n");
+    // printf("\t--no-server-id\n"
+    //        "\t\tDon't identify the server type in headers\n"
+    //        "\t\tor directory listings.\n\n");
+    // printf("\t--auth username:password\n"
+    //        "\t\tEnable basic authentication.\n\n");
+}
+
 int main(int argc, char *argv[])
 {
+    if (1 == argc)
+    {
+        usage(argv[0]);
+        return 0;
+    }
     struct method method;
     memset(&method, 0, sizeof(method));
     int index = 0;
@@ -39,7 +86,7 @@ int main(int argc, char *argv[])
         switch (c)
         {
         case 'h':   // help
-            printf("help\n");
+            usage(argv[0]);
             break;
         case 'v':   // version
             printf("cfile version 0.0.1\n");
